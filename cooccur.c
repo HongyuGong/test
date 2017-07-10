@@ -154,9 +154,20 @@ int write_chunk(CREC *cr, long long length, FILE *fout) {
             continue;
         }
         fwrite(&old, sizeof(CREC), 1, fout);
+        fprintf(stderr, "%d write_chunk test", 1); // DEBUG
+        fprintf(stderr, "%d\t", old.word1);
+        fprintf(stderr, "%d\t", old.word2);
+        fprintf(stderr, "%d\t", old.word3);
+        fprintf(stderr, "%f\n", old.val); // DEBUG
+        // DEBUG
         old = cr[a];
     }
     fwrite(&old, sizeof(CREC), 1, fout);
+    fprintf(stderr, "%d write_chunk test", 2); // DEBUG
+    fprintf(stderr, "%d\t", old.word1);
+    fprintf(stderr, "%d\t", old.word2);
+    fprintf(stderr, "%d\t", old.word3);
+    fprintf(stderr, "%f\n", old.val); // DEBUG
     return 0;
 }
 
@@ -220,11 +231,16 @@ void delete(CRECID *pq, int size) {
 
 /* Write top node of priority queue to file, accumulating duplicate entries */
 int merge_write(CRECID new, CRECID *old, FILE *fout) {
-    if (new.word1 == old->word1 && new.word2 == old->word2 && new.word3 == old->word3) {
+    if (new.word1 == old->word1 && new.word2 == old->word2) { //  && new.word3 == old->word3
         old->val += new.val;
         return 0; // Indicates duplicate entry
     }
     fwrite(old, sizeof(CREC), 1, fout);
+    fprintf(stderr, "%d merge_write test", 1); // DEBUG
+    fprintf(stderr, "%d\t", old->word1);
+    fprintf(stderr, "%d\t", old->word2);
+    fprintf(stderr, "%d\t", old->word3);
+    fprintf(stderr, "%f\n", old->val); // DEBUG
     *old = new;
     return 1; // Actually wrote to file
 }
@@ -234,6 +250,7 @@ int merge_files(int num) {
     int i, size;
     long long counter = 0;
     CRECID *pq, new, old;
+    CREC new_crec, old_crec;
     char filename[200];
     FILE **fid, *fout;
     fid = malloc(sizeof(FILE) * num);
@@ -246,7 +263,19 @@ int merge_files(int num) {
         sprintf(filename,"%s_%04d.bin",file_head,i);
         fid[i] = fopen(filename,"rb");
         if (fid[i] == NULL) {fprintf(stderr, "Unable to open file %s.\n",filename); return 1;}
+        // CHANGE
         fread(&new, sizeof(CREC), 1, fid[i]);
+        // fread(&new_crec, sizeof(CREC), 1, fid[i]);
+        // new.word1 = new_crec.word1;
+        // new.word2 = new_crec.word2;
+        // new.word3 = new_crec.word3;
+        // new.val = new_crec.val;
+        // CHANGE
+        fprintf(stderr, "%d read_new test\n", 1); // DEBUG
+        fprintf(stderr, "%d\t", new.word1);
+        fprintf(stderr, "%d\t", new.word2);
+        fprintf(stderr, "%d\t", new.word3);
+        fprintf(stderr, "%f\n", new.val); // DEBUG
         new.id = i;
         insert(pq,new,i+1);
     }
@@ -256,7 +285,20 @@ int merge_files(int num) {
     old = pq[0];
     i = pq[0].id;
     delete(pq, size);
+    // CHANGE
     fread(&new, sizeof(CREC), 1, fid[i]);
+    // fread(&new_crec, sizeof(CREC), 1, fid[i]);
+    // new.word1 = new_crec.word1;
+    // new.word2 = new_crec.word2;
+    // new.word3 = new_crec.word3;
+    // new.val = new_crec.val;
+    // CHANGE
+
+    fprintf(stderr, "%d read_new test\n", 2); // DEBUG
+    fprintf(stderr, "%d\t", new.word1);
+    fprintf(stderr, "%d\t", new.word2);
+    fprintf(stderr, "%d\t", new.word3);
+    fprintf(stderr, "%f\n", new.val); // DEBUG
     if (feof(fid[i])) size--;
     else {
         new.id = i;
@@ -269,7 +311,14 @@ int merge_files(int num) {
         if ((counter%100000) == 0) if (verbose > 1) fprintf(stderr,"\033[39G%lld lines.",counter);
         i = pq[0].id;
         delete(pq, size);
+        // CHANGE
         fread(&new, sizeof(CREC), 1, fid[i]);
+        // fread(&new_crec, sizeof(CREC), 1, fid[i]);
+        // new.word1 = new_crec.word1;
+        // new.word2 = new_crec.word2;
+        // new.word3 = new_crec.word3;
+        // new.val = new_crec.val;
+        // CHANGE
         if (feof(fid[i])) size--;
         else {
             new.id = i;
@@ -277,6 +326,11 @@ int merge_files(int num) {
         }
     }
     fwrite(&old, sizeof(CREC), 1, fout);
+    fprintf(stderr, "%d merge_files test\n", 1); // DEBUG
+    fprintf(stderr, "%d\t", old.word1);
+    fprintf(stderr, "%d\t", old.word2);
+    fprintf(stderr, "%d\t", old.word3);
+    fprintf(stderr, "%f\n", old.val); // DEBUG
     fprintf(stderr,"\033[0GMerging cooccurrence files: processed %lld lines.\n",++counter);
     for (i=0;i<num;i++) {
         sprintf(filename,"%s_%04d.bin",file_head,i);
@@ -403,6 +457,12 @@ int get_cooccurrence() {
                 fwrite(&y, sizeof(int), 1, fid);
                 fwrite(&cond, sizeof(int), 1, fid); //z = cond;
                 fwrite(&r, sizeof(real), 1, fid);
+                fprintf(stderr, "%d get_cooccurrence test", 1); // DEBUG
+                fprintf(stderr, "%d\t", x);
+                fprintf(stderr, "%d\t", y);
+                fprintf(stderr, "%d\t", cond);
+                fprintf(stderr, "%f\n", r); // DEBUG
+
             }
         }
     }
@@ -488,3 +548,4 @@ int main(int argc, char **argv) {
     
     return get_cooccurrence();
 }
+
